@@ -10,12 +10,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	// The name of our config file, without the file extension because viper supports many different config file languages.
-	defaultConfigFilename = "config"
+type viperContext string
 
-	envPrefix = "APP"
-)
+const ViperContext = viperContext("commandments")
 
 // initializeConfig initializes a viper config
 // defaultConfigFilename: The name of our config file, without the file extension because viper supports many different config file languages.
@@ -61,18 +58,16 @@ func initializeConfig(cmd *cobra.Command, envPrefix, defaultConfigFilename strin
 	v.AutomaticEnv()
 
 	// Bind the current command's flags to viper
-	err = bindFlags(cmd, v)
+	err = bindFlags(cmd, v, envPrefix)
 	if err != nil {
 		return err
 	}
-	cmd.SetContext(context.WithValue(cmd.Context(), "viper", v))
-	fmt.Println("context stuff", cmd.Context().Value("viper"))
-
+	cmd.SetContext(context.WithValue(cmd.Context(), ViperContext, v))
 	return nil
 }
 
 // Bind each cobra flag to its associated viper configuration (config file and environment variable)
-func bindFlags(cmd *cobra.Command, v *viper.Viper) (err error) {
+func bindFlags(cmd *cobra.Command, v *viper.Viper, envPrefix string) (err error) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Environment variables can't have dashes in them, so bind them to their equivalent
 		// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR

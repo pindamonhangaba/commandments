@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -93,9 +94,11 @@ func NewCMD[T any](name string, configs ...cmdArg[T]) (*cobra.Command, error) {
 
 			cmd.RunE = func(cmd *cobra.Command, args []string) error {
 
-				v, ok := cmd.Context().Value("viper").(*viper.Viper)
+				v, ok := cmd.Context().Value(ViperContext).(*viper.Viper)
 				if ok {
-					err := v.Unmarshal(configValue)
+					err := v.Unmarshal(configValue, func(opt *mapstructure.DecoderConfig) {
+						opt.TagName = "flag"
+					})
 					if err != nil {
 						return errors.Wrap(err, "viper config")
 					}
