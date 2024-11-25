@@ -135,6 +135,21 @@ func NewCMD[T any](name string, configs ...cmdArg[T]) (*cobra.Command, error) {
 				d = val
 			}
 			cmd.PersistentFlags().Int(flag.name, d, flag.usage)
+		case reflect.Slice:
+			switch reflect.TypeOf(defVal).Elem().Kind() {
+			case reflect.String:
+				var d []string
+				if val, ok := defVal.([]string); ok {
+					d = val
+				}
+				cmd.PersistentFlags().StringSlice(flag.name, d, flag.usage)
+			case reflect.Int:
+				var d []int
+				if val, ok := defVal.([]int); ok {
+					d = val
+				}
+				cmd.PersistentFlags().IntSlice(flag.name, d, flag.usage)
+			}
 		default:
 			d := ""
 			if val, ok := defVal.(string); ok {
