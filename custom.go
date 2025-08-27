@@ -159,9 +159,6 @@ func NewCMD[T any](name string, configs ...cmdArg[T]) (*cobra.Command, error) {
 		}
 	}
 
-	// Add config flag that initializeConfig expects
-	cmd.PersistentFlags().String("config", "", "Path to configuration file")
-
 	return cmd, nil
 }
 

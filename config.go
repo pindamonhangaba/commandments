@@ -28,12 +28,15 @@ func initializeConfig(cmd *cobra.Command, envPrefix, defaultConfigFilename strin
 	// config file. We are only looking in the current working directory.
 	v.AddConfigPath(".")
 
-	configPath, err := cmd.Flags().GetString("config")
-	if err != nil {
-		return err
-	}
-	if len(configPath) > 0 {
-		v.SetConfigFile(configPath)
+	// Check if config flag exists before trying to get it
+	if cmd.Flags().Lookup("config") != nil {
+		configPath, err := cmd.Flags().GetString("config")
+		if err != nil {
+			return err
+		}
+		if len(configPath) > 0 {
+			v.SetConfigFile(configPath)
+		}
 	}
 
 	// Attempt to read the config file, gracefully ignoring errors
@@ -58,8 +61,7 @@ func initializeConfig(cmd *cobra.Command, envPrefix, defaultConfigFilename strin
 	v.AutomaticEnv()
 
 	// Bind the current command's flags to viper
-	err = bindFlags(cmd, v, envPrefix)
-	if err != nil {
+	if err := bindFlags(cmd, v, envPrefix); err != nil {
 		return err
 	}
 	cmd.SetContext(context.WithValue(cmd.Context(), ViperContext, v))
