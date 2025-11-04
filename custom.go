@@ -106,6 +106,9 @@ func NewCMD[T any](name string, configs ...cmdArg[T]) (*cobra.Command, error) {
 				return withConfig(*(configValue))
 			}
 			cmd.PersistentPreRunE = func(c *cobra.Command, args []string) error {
+				if err := callPersistentPreRun(c, args); err != nil {
+					return err
+				}
 				return initializeConfig(c, envPrefix, defaultConfigFilename)
 			}
 		}
@@ -203,4 +206,15 @@ func structValueFromField[T any](s T, field string) (any, error) {
 	}
 	f := rt.FieldByName(field)
 	return f.Interface(), nil
+}
+
+func callPersistentPreRun(cmd *cobra.Command, args []string) error {
+	if parent := cmd.Parent(); parent != nil {
+		if parent.PersistentPreRunE != nil {
+			return parent.PersistentPreRunE(parent, args)
+		} else if parent.PersistentPreRun != nil {
+			parent.PersistentPreRun(parent, args)
+		}
+	}
+	return nil
 }
